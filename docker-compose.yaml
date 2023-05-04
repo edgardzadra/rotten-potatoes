@@ -1,0 +1,53 @@
+version: '3'
+
+volumes:
+  mongo_vol:
+
+networks:
+  mongo_net:
+    driver: bridge
+
+services:
+  potatoes:
+    image: edgard/potatoes:v1
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    environment:
+      MONGODB_DB: admin
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      MONGODB_USERNAME: mongouser
+      MONGODB_PASSWORD: mongopwd
+    ports:
+      - 5000:5000
+    networks:
+      - mongo_net
+  
+  mongodb:
+    image: mongo:5.0.17
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongouser
+      MONGO_INITDB_ROOT_PASSWORD: mongopwd
+    volumes:
+      - mongo_vol:/data/app
+    ports:
+      - 27017:27017
+    networks:
+      - mongo_net
+
+  mongo_express:
+    image: mongo-express:0.54.0
+    environment:
+      ME_CONFIG_OPTIONS_EDITORTHEME: "ambiance"
+      ME_CONFIG_MONGODB_SERVER: "mongodb" 
+      ME_CONFIG_BASICAUTH_USERNAME: "user"
+      ME_CONFIG_BASICAUTH_PASSWORD: "password"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "rootuser"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "mongopwd2"
+    depends_on:
+      - mongodb
+    networks:
+      - mongo_net
+    ports:
+      - 8081:8081 
